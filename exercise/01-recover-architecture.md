@@ -38,15 +38,17 @@ evidence: system/online-boutique/protos/demo.proto, system/online-boutique/kuber
 
 | ผู้เรียก → ผู้ถูกเรียก | หลักฐานที่ AI อ้าง | ยืนยันแล้วหรือไม่ ✅ / ❌ / ❓ | สิ่งที่นิสิตพบ |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+|frontend → productcatalogservice |system/online-boutique/kubernetes-manifests/frontend.yaml (PRODUCT_CATALOG_SERVICE_ADDR); system/online-boutique/kubernetes-manifests/productcatalogservice.yaml (ports.name: grpc) |✅ |ในไฟล์ frontend/rgc.go มีการเรียก ProductCatalogServiceClient เช่น getProducts |
+|frontend → cartservice |system/online-boutique/kubernetes-manifests/frontend.yaml (CART_SERVICE_ADDR); system/online-boutique/kubernetes-manifests/cartservice.yaml (ports.name: grpc) |✅ |ในไฟล์ frontend/rgc.go มีการเรียก CartServiceClient เช่น getCart |
+|frontend → checkoutservice |system/online-boutique/kubernetes-manifests/frontend.yaml (CHECKOUT_SERVICE_ADDR); system/online-boutique/kubernetes-manifests/checkoutservice.yaml (ports.name: grpc) |✅ |ในไฟล์ frontend/handlers.go มีการเรียก CheckoutServiceClient เช่น PlaceOrder |
+|checkoutservice → productcatalogservice |system/online-boutique/kubernetes-manifests/checkoutservice.yaml (PRODUCT_CATALOG_SERVICE_ADDR); system/online-boutique/kubernetes-manifests/productcatalogservice.yaml (ports.name: grpc) |✅ |ในไฟล์ checkoutsevice/main.go มีการเรียก ProductCatalogServiceClient เช่น prepOrderItems |
+|checkoutservice → cartservice |system/online-boutique/kubernetes-manifests/checkoutservice.yaml (CART_SERVICE_ADDR); system/online-boutique/kubernetes-manifests/cartservice.yaml (ports.name: grpc) |✅ |ในไฟล์ checkoutsevice/main.go มีการเรียก CartServiceClient เช่น getUserCart |
 
 - **สิ่งที่ผิดหรือขาดหายไป** ใน Run B (dependency ที่ไม่มีจริง, dependency ที่ขาดไป, container ที่น่าสงสัย): …
 
 ## สะท้อนคิด (ข้อละ 2–3 ประโยค)
 
 1. เปรียบเทียบ A กับ B: agent **ไม่สามารถ**รู้อะไรได้จากไฟล์ `.proto` เพียงไฟล์เดียว และเพราะเหตุใด
+    : เนื่องจาก A มีการอ่านแค่ demo.proto ทำให้รู้แค่ว่า service ไหนใช้อะไรบ้าง และมี function อะไรบ้าง แต่ไม่รู้พฤติกรรมที่ B รู้จากไฟล์ .yaml
 2. ข้อผิดพลาด**ข้อใดข้อหนึ่ง**ที่จะทำให้สมาชิกใหม่ของทีมเข้าใจผิดมากที่สุด หากเผยแพร่แผนภาพนี้โดยไม่ตรวจสอบ
+    : การดู Environment Variable ในไฟล์ .yaml เช่น frontend → checkoutservice เพราะการตั้งค่า Address แสดงเพียงว่า Service สามารถเชื่อมต่อกันได้ แต่ไม่ได้ยืนยันว่ามีการเรียกใช้งานจริง
